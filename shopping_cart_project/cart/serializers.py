@@ -1,17 +1,19 @@
 # cart/serializers.py
 
 from rest_framework import serializers
-from .models import Location, Department, Product, CartItem
+from .models import Location, Department, Product, CartItem, Cart, Order, OrderItem
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
         fields = ['id', 'name', 'description']
 
+
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = ['id', 'name', 'description', 'is_taxable']
+
 
 class ProductSerializer(serializers.ModelSerializer):
     location = LocationSerializer(read_only=True)
@@ -23,6 +25,7 @@ class ProductSerializer(serializers.ModelSerializer):
                   'location', 'department', 'is_available', 'on_hand', 
                   'created_at', 'updated_at']
 
+
 class CartItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
     subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
@@ -33,3 +36,28 @@ class CartItemSerializer(serializers.ModelSerializer):
         model = CartItem
         fields = ['id', 'product', 'quantity', 'subtotal', 'tax', 'total_price', 
                   'created_at', 'updated_at']
+
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+    total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'user', 'items', 'total', 'created_at', 'updated_at']
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product', 'product_name', 'quantity', 'price']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'user', 'status', 'total', 'items', 'created_at', 'updated_at']
