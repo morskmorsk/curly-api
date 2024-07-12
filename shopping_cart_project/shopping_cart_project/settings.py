@@ -131,3 +131,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
+
+# Add this to your settings.py
+
+TAX_RATE = 0.09  # 8% tax rate, adjust as needed

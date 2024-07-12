@@ -1,16 +1,20 @@
 # cart/models.py
 
 from django.db import models
+from django.conf import settings
 
 class Location(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+
     def __str__(self):
         return self.name
 
 class Department(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    is_taxable = models.BooleanField(default=True)
+
     def __str__(self):
         return self.name
 
@@ -40,5 +44,15 @@ class CartItem(models.Model):
         return f"{self.quantity} x {self.product.name}"
 
     @property
-    def total_price(self):
+    def subtotal(self):
         return self.quantity * self.product.price
+
+    @property
+    def tax(self):
+        if self.product.department.is_taxable:
+            return self.subtotal * settings.TAX_RATE
+        return 0
+
+    @property
+    def total_price(self):
+        return self.subtotal + self.tax
