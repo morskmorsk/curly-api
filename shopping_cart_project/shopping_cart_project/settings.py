@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+from decimal import Decimal
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +42,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',  # Add this
     'cart',  # Add this (your new app)
+    'django_filters',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -132,8 +135,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # JWT settings
@@ -146,4 +151,10 @@ SIMPLE_JWT = {
 
 # Add this to your settings.py
 
-TAX_RATE = 0.09  # 8% tax rate, adjust as needed
+TAX_RATE = Decimal('0.08')  # 8% tax rate
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Shopping Cart API',
+    'DESCRIPTION': 'API for managing a shopping cart system',
+    'VERSION': '1.0.0',
+}

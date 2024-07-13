@@ -16,14 +16,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    location = LocationSerializer(read_only=True)
-    department = DepartmentSerializer(read_only=True)
-
     class Meta:
         model = Product
         fields = ['id', 'name', 'price', 'description', 'image', 'barcode', 
                   'location', 'department', 'is_available', 'on_hand', 
                   'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        return Product.objects.create(**validated_data)
 
 
 class CartItemSerializer(serializers.ModelSerializer):

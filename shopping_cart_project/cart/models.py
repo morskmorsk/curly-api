@@ -1,9 +1,9 @@
 # cart/models.py
-
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 
 class Location(models.Model):
     name = models.CharField(max_length=200)
@@ -70,18 +70,18 @@ class CartItem(models.Model):
 
     @property
     def subtotal(self):
-        return self.quantity * self.product.price
+        return Decimal(self.quantity) * self.product.price
 
     @property
     def tax(self):
         if self.product.department.is_taxable:
             return self.subtotal * settings.TAX_RATE
-        return 0
+        return Decimal('0.00')
 
     @property
     def total_price(self):
         return self.subtotal + self.tax
-
+    
     def save(self, *args, **kwargs):
         if self.pk:
             old_quantity = CartItem.objects.get(pk=self.pk).quantity
