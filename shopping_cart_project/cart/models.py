@@ -40,7 +40,7 @@ class Product(models.Model):
 
     def update_inventory(self, quantity):
         if self.on_hand + quantity < 0:
-            raise ValidationError("Not enough inventory")
+            raise ValidationError(f"Not enough inventory. Only {self.on_hand} available.")
         self.on_hand += quantity
         self.save()
 
@@ -55,7 +55,7 @@ class Cart(models.Model):
 
     @property
     def total(self):
-        return sum(item.total_price for item in self.items.all())
+        return sum(item.subtotal for item in self.items.all())
 
 
 class CartItem(models.Model):
@@ -70,7 +70,7 @@ class CartItem(models.Model):
 
     @property
     def subtotal(self):
-        return Decimal(self.quantity) * self.product.price
+        return self.product.price * self.quantity
 
     @property
     def tax(self):
@@ -89,8 +89,11 @@ class CartItem(models.Model):
         else:
             quantity_change = self.quantity
 
-        self.product.update_inventory(-quantity_change)
-        super().save(*args, **kwargs)
+        try:
+            self.product.update_inventory(-quantity_change)
+            super().save(*args, **kwargs)
+        except ValidationError as e:
+            raise ValidationError(str(e))
 
     def delete(self, *args, **kwargs):
         self.product.update_inventory(self.quantity)
