@@ -1,17 +1,30 @@
 # cart/views.py
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
 from rest_framework import viewsets, filters, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Location, Department, Product, CartItem, Cart, Order, OrderItem
-from .serializers import LocationSerializer, DepartmentSerializer, ProductSerializer, CartItemSerializer, CartSerializer, OrderSerializer
+from .serializers import (
+    LocationSerializer, DepartmentSerializer, ProductSerializer, 
+    CartItemSerializer, CartSerializer, OrderSerializer, UserSerializer
+)
 from .filters import ProductFilter
 from rest_framework.pagination import PageNumberPagination
 from django.db import transaction
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
+from rest_framework.decorators import api_view, permission_classes
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
@@ -32,9 +45,9 @@ class ProductPagination(PageNumberPagination):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all().order_by('id')  # Add default ordering
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProductFilter
     search_fields = ['name', 'description', 'barcode']
