@@ -76,3 +76,26 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'user', 'status', 'total', 'items', 'created_at', 'updated_at']
+
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['username'] = user.username
+        token['is_staff'] = user.is_staff
+
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        
+        # Add additional responses here
+        data['username'] = self.user.username
+        data['is_staff'] = self.user.is_staff
+        
+        return data

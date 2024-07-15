@@ -15,7 +15,9 @@ from rest_framework.pagination import PageNumberPagination
 from django.db import transaction
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -96,13 +98,13 @@ def register_user(request):
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminUser]
 
 
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminUser]
 
 
 class ProductPagination(PageNumberPagination):
@@ -114,12 +116,19 @@ class ProductPagination(PageNumberPagination):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProductFilter
     search_fields = ['name', 'description', 'barcode']
     ordering_fields = ['name', 'price', 'created_at']
     pagination_class = ProductPagination
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class CartItemViewSet(viewsets.ModelViewSet):
@@ -159,3 +168,13 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Cart not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from .serializers import CustomTokenObtainPairSerializer
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
