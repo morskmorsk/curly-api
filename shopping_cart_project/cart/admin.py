@@ -16,7 +16,7 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'location', 'department', 'is_available', 'on_hand', 'created_at', 'updated_at')
+    list_display = ('name', 'price', 'location', 'department', 'is_available', 'cost', 'on_hand', 'created_at', 'updated_at')
     list_filter = ('is_available', 'location', 'department', 'department__is_taxable')
     search_fields = ('name', 'description', 'barcode')
 

@@ -4,6 +4,7 @@ from .models import Location, Department, Product, CartItem, Cart, Order, OrderI
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -34,8 +35,8 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'name', 'price', 'description', 'image', 'barcode', 
-                  'location', 'department', 'is_available', 'on_hand', 
-                  'created_at', 'updated_at']
+                  'location', 'department', 'is_available', 'on_hand',
+                  'cost', 'created_at', 'updated_at']
 
     def create(self, validated_data):
         return Product.objects.create(**validated_data)
