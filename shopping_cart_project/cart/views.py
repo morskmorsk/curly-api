@@ -17,6 +17,7 @@ from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 import logging
+# from .pagination import ProductPagination
 
 
 logger = logging.getLogger(__name__)
@@ -116,12 +117,18 @@ class ProductPagination(PageNumberPagination):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProductFilter
     search_fields = ['name', 'description', 'barcode']
     ordering_fields = ['name', 'price', 'created_at']
     pagination_class = ProductPagination
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
